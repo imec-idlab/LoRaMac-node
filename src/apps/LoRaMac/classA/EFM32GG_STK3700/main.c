@@ -653,11 +653,12 @@ static void MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
     }
     NextTx = true;
 }
-
+/*
 static void MlmeIndication( MlmeIndication_t *mlmeIndication )
 {
 	printf("MlmeIndication (status = %d)\n", mlmeIndication->Status);
 }
+*/
 
 /**
  * Main application entry point.
@@ -686,9 +687,9 @@ int main( void )
                 LoRaMacPrimitives.MacMcpsConfirm = McpsConfirm;
                 LoRaMacPrimitives.MacMcpsIndication = McpsIndication;
                 LoRaMacPrimitives.MacMlmeConfirm = MlmeConfirm;
-                LoRaMacPrimitives.MacMlmeIndication = MlmeIndication;
-                LoRaMacCallbacks.GetBatteryLevel = BoardGetBatteryLevel;
-                LoRaMacCallbacks.GetTemperatureLevel = NULL;
+                //LoRaMacPrimitives.MacMlmeIndication = MlmeIndication;
+                //LoRaMacCallbacks.GetBatteryLevel = BoardGetBatteryLevel;
+                //LoRaMacCallbacks.GetTemperatureLevel = NULL;
                 LoRaMacInitialization( &LoRaMacPrimitives, &LoRaMacCallbacks );
 
                 TimerInit( &TxNextPacketTimer, OnTxNextPacketTimerEvent );
