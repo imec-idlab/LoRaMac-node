@@ -17,3 +17,10 @@ bin/
 *.pbxproj
 *.cogui
 *.comarker
+
+*.o
+*.d
+LoRaMac-node.axf
+LoRaMac-node.bin
+LoRaMac-node.hex
+LoRaMac-node.map
