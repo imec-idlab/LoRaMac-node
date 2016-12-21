@@ -155,7 +155,13 @@ void RtcSetTimeout( uint32_t timeout )
 		timeoutValue = timeoutValue + 1;
 	}
 
-	RTC_CompareSet(0, (previousTime * RTC_TICKS_PER_MS) + timeoutValue);
+	// Rounding errors should not cause us to set the number behind the current time
+	uint32_t value = (previousTime * RTC_TICKS_PER_MS) + timeoutValue;
+	if (RTC->CNT > value && value + RTC_TICKS_PER_MS > RTC->CNT)
+		RTC_CompareSet(0, RTC->CNT + 1);
+	else
+		RTC_CompareSet(0, value);
+
 	RTC_IntEnable(RTC_IF_COMP0);
 }
 
