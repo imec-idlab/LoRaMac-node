@@ -13,214 +13,106 @@ License: Revised BSD License, see LICENSE.TXT file include in the project
 Maintainer: Miguel Luis and Gregory Cristian
 */
 #include "board.h"
-
 #include "uart-board.h"
+#include "em_cmu.h"
 
-//UART_HandleTypeDef UartHandle;
 uint8_t RxData = 0;
 
 void UartMcuInit( Uart_t *obj, uint8_t uartId, PinNames tx, PinNames rx )
 {
-	assert_param( FAIL );
-		/*
     obj->UartId = uartId;
 
-    __HAL_RCC_USART1_FORCE_RESET( );
-    __HAL_RCC_USART1_RELEASE_RESET( );
-
-    __HAL_RCC_USART1_CLK_ENABLE( );
-
-    GpioInit( &obj->Tx, tx, PIN_ALTERNATE_FCT, PIN_PUSH_PULL, PIN_PULL_UP, GPIO_AF7_USART1 );
-    GpioInit( &obj->Rx, rx, PIN_ALTERNATE_FCT, PIN_PUSH_PULL, PIN_PULL_UP, GPIO_AF7_USART1 );*/
+    GpioInit(&obj->Tx, tx, PIN_OUTPUT, PIN_PUSH_PULL, PIN_PULL_UP, 0);
+    GpioInit(&obj->Rx, rx, PIN_INPUT, PIN_PUSH_PULL, PIN_PULL_UP, 0);
 }
 
 void UartMcuConfig( Uart_t *obj, UartMode_t mode, uint32_t baudrate, WordLength_t wordLength, StopBits_t stopBits, Parity_t parity, FlowCtrl_t flowCtrl )
 {
-	assert_param( FAIL );
-		/*
-    UartHandle.Instance = USART1;
-    UartHandle.Init.BaudRate = baudrate;
+	CMU_ClockEnable(cmuClock_UART0, true);
 
-    if( mode == TX_ONLY )
-    {
-        if( obj->FifoTx.Data == NULL )
-        {
-            assert_param( FAIL );
-        }
-        UartHandle.Init.Mode = UART_MODE_TX;
-    }
-    else if( mode == RX_ONLY )
-    {
-        if( obj->FifoRx.Data == NULL )
-        {
-            assert_param( FAIL );
-        }
-        UartHandle.Init.Mode = UART_MODE_RX;
-    }
-    else if( mode == RX_TX )
-    {
-        if( ( obj->FifoTx.Data == NULL ) || ( obj->FifoRx.Data == NULL ) )
-        {
-            assert_param( FAIL );
-        }
-        UartHandle.Init.Mode = UART_MODE_TX_RX;
-    }
-    else
-    {
-       assert_param( FAIL );
-    }
+	int dataBitsValue;
+	if (wordLength == UART_9_BIT)
+		dataBitsValue = usartDatabits9;
+	else
+		dataBitsValue = usartDatabits8;
 
-    if( wordLength == UART_8_BIT )
-    {
-        UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-    }
-    else if( wordLength == UART_9_BIT )
-    {
-        UartHandle.Init.WordLength = UART_WORDLENGTH_9B;
-    }
+	int stopBitsValue;
+	if (stopBits == UART_2_STOP_BIT)
+		stopBitsValue = usartStopbits2;
+	else if (stopBits == UART_1_5_STOP_BIT)
+		stopBitsValue = usartStopbits1p5;
+	else if (stopBits == UART_0_5_STOP_BIT)
+		stopBitsValue = usartStopbits0p5;
+	else
+		stopBitsValue = usartStopbits1;
 
-    switch( stopBits )
-    {
-    case UART_2_STOP_BIT:
-        UartHandle.Init.StopBits = UART_STOPBITS_2;
-        break;
-    case UART_1_STOP_BIT:
-    default:
-        UartHandle.Init.StopBits = UART_STOPBITS_1;
-        break;
-    }
+	int parityValue;
+	if (parity == EVEN_PARITY)
+		parityValue = usartEvenParity;
+	else if (parity == ODD_PARITY)
+		parityValue = usartOddParity;
+	else
+		parityValue = usartNoParity;
 
-    if( parity == NO_PARITY )
-    {
-        UartHandle.Init.Parity = UART_PARITY_NONE;
-    }
-    else if( parity == EVEN_PARITY )
-    {
-        UartHandle.Init.Parity = UART_PARITY_EVEN;
-    }
-    else
-    {
-        UartHandle.Init.Parity = UART_PARITY_ODD;
-    }
+	int enableValue;
+	if (mode == TX_ONLY)
+		enableValue = usartEnableTx;
+	else if (mode == RX_ONLY)
+		enableValue = usartEnableRx;
+	else
+		enableValue = usartEnable;
 
-    if( flowCtrl == NO_FLOW_CTRL )
-    {
-        UartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    }
-    else if( flowCtrl == RTS_FLOW_CTRL )
-    {
-        UartHandle.Init.HwFlowCtl = UART_HWCONTROL_RTS;
-    }
-    else if( flowCtrl == CTS_FLOW_CTRL )
-    {
-        UartHandle.Init.HwFlowCtl = UART_HWCONTROL_CTS;
-    }
-    else if( flowCtrl == RTS_CTS_FLOW_CTRL )
-    {
-        UartHandle.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
-    }
+	USART_InitAsync_TypeDef uartInit = {
+	    .enable       = usartDisable,   // wait to enable the transceiver
+	    .refFreq      = 0,              // setting refFreq to 0 will invoke the CMU_ClockFreqGet() function and measure the HFPER clock
+	    .baudrate     = baudrate,       // desired baud rate
+	    .oversampling = usartOVS16,     // set oversampling value to x16
+	    .databits     = dataBitsValue,
+	    .parity       = parityValue,
+	    .stopbits     = stopBitsValue,
+	    .mvdis        = false,          // use majority voting
+	    .prsRxEnable  = false,          // not using PRS input
+	    .prsRxCh      = usartPrsRxCh0,  // doesn't matter which channel we select
+	};
 
-    UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+	USART_InitAsync(UART0, &uartInit);
 
-    if( HAL_UART_Init( &UartHandle ) != HAL_OK )
-    {
-        while( 1 );
-    }
+	// clear RX/TX buffers and shift regs, enable transmitter and receiver pins
+	UART0->ROUTE = UART_ROUTE_RXPEN | UART_ROUTE_TXPEN | UART_ROUTE_LOCATION_LOC1;
 
-    HAL_NVIC_SetPriority( USART1_IRQn, 8, 0 );
-    HAL_NVIC_EnableIRQ( USART1_IRQn );
+	USART_IntClear(UART0, _UART_IF_MASK); // Clear any USART interrupt flags
+	NVIC_ClearPendingIRQ(UART0_RX_IRQn);   // Clear pending RX interrupt flag in NVIC
+	NVIC_ClearPendingIRQ(UART0_TX_IRQn);   // Clear pending TX interrupt flag in NVIC
 
-    // Enable the UART Data Register not empty Interrupt
-    HAL_UART_Receive_IT( &UartHandle, &RxData, 1 );*/
+	USART_Enable(UART0, enableValue);
 }
 
 void UartMcuDeInit( Uart_t *obj )
 {
-	assert_param( FAIL );
-		/*
-    __HAL_RCC_USART1_FORCE_RESET( );
-    __HAL_RCC_USART1_RELEASE_RESET( );
-    __HAL_RCC_USART1_CLK_DISABLE( );
+	UART0->ROUTE = _UART_ROUTE_RESETVALUE;
 
-    GpioInit( &obj->Tx, obj->Tx.pin, PIN_ANALOGIC, PIN_PUSH_PULL, PIN_NO_PULL, 0 );
-    GpioInit( &obj->Rx, obj->Rx.pin, PIN_ANALOGIC, PIN_PUSH_PULL, PIN_NO_PULL, 0 );*/
+	USART_Enable(UART0, usartDisable);
+	CMU_ClockEnable(cmuClock_UART0, false);
 }
 
 uint8_t UartMcuPutChar( Uart_t *obj, uint8_t data )
 {
-	assert_param( FAIL );
-		/*
-    if( IsFifoFull( &obj->FifoTx ) == false )
-    {
-        BoardDisableIrq( );
-        FifoPush( &obj->FifoTx, data );
-        BoardEnableIrq( );
-        // Enable the USART Transmit interrupt
-        __HAL_UART_ENABLE_IT( &UartHandle, USART_IT_TXE );
-        return 0; // OK
-    }
-    return 1; // Busy
-    */
+	if (UART0->STATUS & UART_STATUS_TXBL)
+	{
+		UART0->TXDATA = (uint32_t)data;
+		return 0; // OK
+	}
+	else
+		return 1; // Busy
 }
 
 uint8_t UartMcuGetChar( Uart_t *obj, uint8_t *data )
 {
-	assert_param( FAIL );
-		/*
-    if( IsFifoEmpty( &obj->FifoRx ) == false )
-    {
-        BoardDisableIrq( );
-        *data = FifoPop( &obj->FifoRx );
-        BoardEnableIrq( );
-        return 0;
-    }*/
-    return 1;
+	if (UART0->STATUS & UART_STATUS_RXDATAV)
+	{
+		*data = (uint8_t)UART0->RXDATA;
+		return 0;
+	}
+	else
+		return 1;
 }
-/*
-void HAL_UART_TxCpltCallback( UART_HandleTypeDef *UartHandle )
-{
-    uint8_t data;
-
-    if( IsFifoEmpty( &Uart1.FifoTx ) == false )
-    {
-        data = FifoPop( &Uart1.FifoTx );
-        //  Write one byte to the transmit data register
-        HAL_UART_Transmit_IT( UartHandle, &data, 1 );
-    }
-    else
-    {
-        // Disable the USART Transmit interrupt
-        HAL_NVIC_DisableIRQ( USART1_IRQn );
-    }
-    if( Uart1.IrqNotify != NULL )
-    {
-        Uart1.IrqNotify( UART_NOTIFY_TX );
-    }
-}
-
-void HAL_UART_RxCpltCallback( UART_HandleTypeDef *UartHandle )
-{
-    if( IsFifoFull( &Uart1.FifoRx ) == false )
-    {
-        // Read one byte from the receive data register
-        FifoPush( &Uart1.FifoRx, RxData );
-    }
-    if( Uart1.IrqNotify != NULL )
-    {
-        Uart1.IrqNotify( UART_NOTIFY_RX );
-    }
-
-    __HAL_UART_FLUSH_DRREGISTER( UartHandle );
-    HAL_UART_Receive_IT( UartHandle, &RxData, 1 );
-}
-
-void HAL_UART_ErrorCallback( UART_HandleTypeDef *UartHandle )
-{
-
-}
-
-void USART1_IRQHandler( void )
-{
-    HAL_UART_IRQHandler( &UartHandle );
-}
-*/
