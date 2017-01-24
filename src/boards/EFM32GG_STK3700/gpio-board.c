@@ -27,8 +27,6 @@ static GpioIrqHandler *GpioIrq[16];
 
 void GpioMcuInit( Gpio_t *obj, PinNames pin, PinModes mode, PinConfigs config, PinTypes type, uint32_t value )
 {
-//    GPIO_InitTypeDef GPIO_InitStructure;
-
     if( pin == NC )
     {
         return;
@@ -40,54 +38,14 @@ void GpioMcuInit( Gpio_t *obj, PinNames pin, PinModes mode, PinConfigs config, P
     // We don't use the port variable on this board
     obj->port = NULL;
 
-    if (type != PIN_NO_PULL)
-    	GPIO_PinModeSet(obj->portIndex, obj->pin & 0x0F, gpioModePushPull, value);
+    if (mode == PIN_INPUT)
+        GPIO_PinModeSet(obj->portIndex, obj->pin & 0x0F, gpioModeInput, value);
     else
-    	GPIO_PinModeSet(obj->portIndex, obj->pin & 0x0F, gpioModeDisabled, value);
-/*
-    GPIO_InitStructure.Pin =  obj->pinIndex ;
-    GPIO_InitStructure.Pull = type;
-    GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_HIGH;
+        GPIO_PinModeSet(obj->portIndex, obj->pin & 0x0F, gpioModePushPull, value);
 
-    if( mode == PIN_INPUT )
-    {
-        GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
-    }
-    else if( mode == PIN_ANALOGIC )
-    {
-        GPIO_InitStructure.Mode = GPIO_MODE_ANALOG;
-    }
-    else if( mode == PIN_ALTERNATE_FCT )
-    {
-        if( config == PIN_OPEN_DRAIN )
-        {
-            GPIO_InitStructure.Mode = GPIO_MODE_AF_OD;
-        }
-        else
-        {
-            GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;
-        }
-        GPIO_InitStructure.Alternate = value;
-    }
-    else // mode ouptut
-    {
-        if( config == PIN_OPEN_DRAIN )
-        {
-            GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_OD;
-        }
-        else
-        {
-            GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
-        }
-    }
-
-    HAL_GPIO_Init( obj->port, &GPIO_InitStructure );
-*/
     // Sets initial output value
     if( mode == PIN_OUTPUT )
-    {
         GpioMcuWrite( obj, value );
-    }
 }
 
 void GpioMcuSetInterrupt( Gpio_t *obj, IrqModes irqMode, IrqPriorities irqPriority, GpioIrqHandler *irqHandler )
@@ -202,91 +160,7 @@ uint32_t GpioMcuRead( Gpio_t *obj )
 
     return GPIO_PinOutGet(obj->portIndex, obj->pin & 0x0F);
 }
-/*
-void EXTI0_IRQHandler( void )
-{
-#if !defined( USE_NO_TIMER )
-    RtcRecoverMcuStatus( );
-#endif
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_0 );
-}
 
-void EXTI1_IRQHandler( void )
-{
-#if !defined( USE_NO_TIMER )
-    RtcRecoverMcuStatus( );
-#endif
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_1 );
-}
-
-void EXTI2_IRQHandler( void )
-{
-#if !defined( USE_NO_TIMER )
-    RtcRecoverMcuStatus( );
-#endif
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_2 );
-}
-
-void EXTI3_IRQHandler( void )
-{
-#if !defined( USE_NO_TIMER )
-    RtcRecoverMcuStatus( );
-#endif
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_3 );
-}
-
-void EXTI4_IRQHandler( void )
-{
-#if !defined( USE_NO_TIMER )
-    RtcRecoverMcuStatus( );
-#endif
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_4 );
-}
-
-void EXTI9_5_IRQHandler( void )
-{
-#if !defined( USE_NO_TIMER )
-    RtcRecoverMcuStatus( );
-#endif
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_5 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_6 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_7 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_8 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_9 );
-}
-
-void EXTI15_10_IRQHandler( void )
-{
-#if !defined( USE_NO_TIMER )
-    RtcRecoverMcuStatus( );
-#endif
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_10 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_11 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_12 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_13 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_14 );
-    HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_15 );
-}
-
-void HAL_GPIO_EXTI_Callback( uint16_t gpioPin )
-{
-    uint8_t callbackIndex = 0;
-
-    if( gpioPin > 0 )
-    {
-        while( gpioPin != 0x01 )
-        {
-            gpioPin = gpioPin >> 1;
-            callbackIndex++;
-        }
-    }
-
-    if( GpioIrq[callbackIndex] != NULL )
-    {
-        GpioIrq[callbackIndex]( );
-    }
-}
-*/
 void GPIO_ODD_IRQHandler(void)
  {
 	uint32_t i = GPIO_IntGet();
