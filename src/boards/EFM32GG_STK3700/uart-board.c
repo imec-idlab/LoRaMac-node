@@ -97,13 +97,12 @@ void UartMcuDeInit( Uart_t *obj )
 
 uint8_t UartMcuPutChar( Uart_t *obj, uint8_t data )
 {
-	if (UART0->STATUS & UART_STATUS_TXBL)
-	{
-		UART0->TXDATA = (uint32_t)data;
-		return 0; // OK
-	}
-	else
-		return 1; // Busy
+	// Wait until we can send the next byte
+	while ((UART0->STATUS & UART_STATUS_TXBL) == 0)
+		;
+
+	UART0->TXDATA = (uint32_t)data;
+	return 0; // OK
 }
 
 uint8_t UartMcuGetChar( Uart_t *obj, uint8_t *data )
