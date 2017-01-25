@@ -1,9 +1,3 @@
-#include "em_device.h"
-#include "em_cmu.h"
-#include "em_gpio.h"
-#include "em_usart.h"
-#include "em_system.h"
-#include "em_chip.h"
 #include "board.h"
 
 Uart_t uart; // some members have to be initialized, do not put the declaration inside a function without setting some values
