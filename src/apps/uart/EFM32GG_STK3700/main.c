@@ -6,7 +6,13 @@
 #include "em_chip.h"
 #include "board.h"
 
-Uart_t uart; // some values have to be initialized, do not put declaration inside a function without settings some values
+Uart_t uart; // some members have to be initialized, do not put the declaration inside a function without setting some values
+
+// This function will make printf work
+void _write(int fd, const void *buf, size_t count)
+{
+	UartPutBuffer(&uart, (uint8_t*)buf, count);
+}
 
 int main()
 {
@@ -14,6 +20,8 @@ int main()
 
 	UartInit(&uart, UART_1, PE_0, PE_1);
 	UartConfig(&uart, RX_TX, 115200, UART_8_BIT, UART_1_STOP_BIT, NO_PARITY, NO_FLOW_CTRL);
+
+	printf("Hello world\r\n");
 
 	uint8_t c;
 	while (true)
