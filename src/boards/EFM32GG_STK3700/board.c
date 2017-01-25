@@ -125,6 +125,9 @@ void BoardInitMcu( void )
     SpiInit( &SX1276.Spi, RADIO_MOSI, RADIO_MISO, RADIO_SCLK, RADIO_NSS );
     SX1276IoInit( );
 
+    UartInit(&Uart1, UART_1, PE_0, PE_1);
+    UartConfig(&Uart1, RX_TX, 115200, UART_8_BIT, UART_1_STOP_BIT, NO_PARITY, NO_FLOW_CTRL);
+
     if( McuInitialized == false )
     {
         McuInitialized = true;
