@@ -80,9 +80,12 @@ void UartMcuConfig( Uart_t *obj, UartMode_t mode, uint32_t baudrate, WordLength_
 	// clear RX/TX buffers and shift regs, enable transmitter and receiver pins
 	UART0->ROUTE = UART_ROUTE_RXPEN | UART_ROUTE_TXPEN | UART_ROUTE_LOCATION_LOC1;
 
-	USART_IntClear(UART0, _UART_IF_MASK); // Clear any USART interrupt flags
-	NVIC_ClearPendingIRQ(UART0_RX_IRQn);   // Clear pending RX interrupt flag in NVIC
-	NVIC_ClearPendingIRQ(UART0_TX_IRQn);   // Clear pending TX interrupt flag in NVIC
+	// Enable interrupts
+	USART_IntClear(UART0, _UART_IF_MASK);
+	USART_IntEnable(UART0, UART_IF_RXDATAV);
+	NVIC_ClearPendingIRQ(UART0_TX_IRQn);
+	NVIC_ClearPendingIRQ(UART0_RX_IRQn);
+	NVIC_EnableIRQ(UART0_RX_IRQn);
 
 	USART_Enable(UART0, enableValue);
 }
@@ -115,3 +118,22 @@ uint8_t UartMcuGetChar( Uart_t *obj, uint8_t *data )
 	else
 		return 1;
 }
+
+void UART0_RX_IRQHandler(void)
+{
+	if (UART0->STATUS & UART_STATUS_RXDATAV)
+	{
+		Uart1.IrqNotify(UART_NOTIFY_RX);
+		USART_IntClear(UART0, UART_IF_RXDATAV);
+	}
+}
+/*
+void UART0_TX_IRQHandler(void)
+{
+	if (UART0->STATUS & UART_STATUS_TXBL)
+	{
+		Uart1.IrqNotify(UART_NOTIFY_TX);
+		USART_IntClear(UART0, UART_IF_TXBL);
+	}
+}
+*/
