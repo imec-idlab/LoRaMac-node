@@ -313,6 +313,6 @@ TimerTime_t RtcTempCompensation( TimerTime_t period, float temperature )
 
 void HAL_Delay (uint32_t ms)
 {
-	uint32_t endTime = RtcGetTimerValue() + ms;
-	while (endTime - RtcGetTimerValue() > 0) ; // busy wait until timestamp is reached
+	uint32_t startTime = RtcGetTimerValue();
+	while((RtcGetTimerValue() - startTime) < ms); // busy wait until at least ms ticks have passed
 }
