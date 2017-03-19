@@ -1,5 +1,7 @@
 -include Makefile.local
 
+NAME    := $(subst /,-,$(TARGET))
+
 CC       = arm-none-eabi-gcc
 CXX      = arm-none-eabi-g++
 PLATFORM = EFM32GG_STK3700
