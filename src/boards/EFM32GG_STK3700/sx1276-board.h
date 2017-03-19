@@ -62,6 +62,13 @@ void SX1276IoIrqInit( DioIrqHandler **irqHandlers );
 void SX1276IoDeInit( void );
 
 /*!
+ * \brief Sets the radio output power.
+ *
+ * \param [IN] power Sets the RF output power
+ */
+void SX1276SetRfTxPower( int8_t power );
+
+/*!
  * \brief Gets the board PA selection configuration
  *
  * \param [IN] channel Channel frequency in Hz

@@ -83,6 +83,68 @@ void SX1276IoDeInit( void )
 	assert_param( FAIL );
 }
 
+void SX1276SetRfTxPower( int8_t power )
+{
+    uint8_t paConfig = 0;
+    uint8_t paDac = 0;
+
+    paConfig = SX1276Read( REG_PACONFIG );
+    paDac = SX1276Read( REG_PADAC );
+
+    paConfig = ( paConfig & RF_PACONFIG_PASELECT_MASK ) | SX1276GetPaSelect( SX1276.Settings.Channel );
+    paConfig = ( paConfig & RF_PACONFIG_MAX_POWER_MASK ) | 0x70;
+
+    if( ( paConfig & RF_PACONFIG_PASELECT_PABOOST ) == RF_PACONFIG_PASELECT_PABOOST )
+    {
+        if( power > 17 )
+        {
+            paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_ON;
+        }
+        else
+        {
+            paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_OFF;
+        }
+        if( ( paDac & RF_PADAC_20DBM_ON ) == RF_PADAC_20DBM_ON )
+        {
+            if( power < 5 )
+            {
+                power = 5;
+            }
+            if( power > 20 )
+            {
+                power = 20;
+            }
+            paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power - 5 ) & 0x0F );
+        }
+        else
+        {
+            if( power < 2 )
+            {
+                power = 2;
+            }
+            if( power > 17 )
+            {
+                power = 17;
+            }
+            paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power - 2 ) & 0x0F );
+        }
+    }
+    else
+    {
+        if( power < -1 )
+        {
+            power = -1;
+        }
+        if( power > 14 )
+        {
+            power = 14;
+        }
+        paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power + 1 ) & 0x0F );
+    }
+    SX1276Write( REG_PACONFIG, paConfig );
+    SX1276Write( REG_PADAC, paDac );
+}
+
 uint8_t SX1276GetPaSelect( uint32_t channel )
 {
 // TODO: I had to enable boost to get decent communication
