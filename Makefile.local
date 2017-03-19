@@ -1,0 +1,2 @@
+TARGET ?= LoRaMac/classA
+NAME ?= LoRaMac-node

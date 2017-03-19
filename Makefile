@@ -1,4 +1,4 @@
-NAME := LoRaMac-node
+-include Makefile.local
 
 CC       = arm-none-eabi-gcc
 CXX      = arm-none-eabi-g++
@@ -44,7 +44,7 @@ src/boards/mcu/efm32gg/emlib/src/em_rtc.c \
 src/boards/mcu/efm32gg/emlib/src/em_system.c \
 src/boards/mcu/efm32gg/emlib/src/em_timer.c \
 src/boards/mcu/efm32gg/emlib/src/em_usart.c \
-src/apps/LoRaMac/classA/EFM32GG_STK3700/main.c
+$(wildcard src/apps/$(TARGET)/EFM32GG_STK3700/*.c)
 
 INCLUDE_DIRS := \
 src \
@@ -71,7 +71,7 @@ endif
 
 .PHONY: all clean distclean
 
-all: $(NAME)
+all: $(TARGET)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -g -gdwarf-2 -mcpu=cortex-m3 -mthumb -O0 -Wall -fmessage-length=0 -mno-sched-prolog -fno-builtin -ffunction-sections -fdata-sections -std=c99 -MMD -MP -MF"${@:.o=.d}" -MT"$@" -o "$@" "$<"
@@ -79,10 +79,10 @@ all: $(NAME)
 startup_efm32gg.o: src/boards/mcu/efm32gg/CMSIS/startup_gcc_efm32gg.s
 	$(CC) -g -gdwarf-2 -mcpu=cortex-m3 -mthumb -x assembler-with-cpp -c -o "$@" "$<"
 
-$(NAME): $(OBJS)
+$(TARGET): $(OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: GNU ARM C++ Linker'
-	$(CXX) -g -gdwarf-2 -mcpu=cortex-m3 -mthumb -T "$(NAME).ld" --specs=nosys.specs -Xlinker --gc-sections -Xlinker -Map="$(NAME).map" --specs=nano.specs -o $(NAME).axf $(OBJS) -Wl,--start-group -lgcc -lc -lnosys -Wl,--end-group
+	$(CXX) -g -gdwarf-2 -mcpu=cortex-m3 -mthumb -T "EFM32.ld" --specs=nosys.specs -Xlinker --gc-sections -Xlinker -Map="$(NAME).map" --specs=nano.specs -o $(NAME).axf $(OBJS) -Wl,--start-group -lgcc -lc -lnosys -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -99,7 +99,7 @@ $(NAME): $(OBJS)
 	@echo ' '
 
 clean:
-	@- $(RM) $(NAME).axf
 	@- $(RM) $(OBJS) ${OBJS:.o=.d}
+	@- $(RM) $(NAME).axf $(NAME).bin $(NAME).hex $(NAME).map
 
 distclean: clean
