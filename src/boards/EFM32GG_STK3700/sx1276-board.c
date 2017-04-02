@@ -39,15 +39,17 @@ const struct Radio_s Radio =
     SX1276GetTimeOnAir,
     SX1276Send,
     SX1276SetSleep,
-    SX1276SetStby, 
+    SX1276SetStby,
     SX1276SetRx,
     SX1276StartCad,
+    SX1276SetTxContinuousWave,
     SX1276ReadRssi,
     SX1276Write,
     SX1276Read,
     SX1276WriteBuffer,
     SX1276ReadBuffer,
-    SX1276SetMaxPayloadLength
+    SX1276SetMaxPayloadLength,
+    SX1276SetPublicNetwork
 };
 
 /*!
