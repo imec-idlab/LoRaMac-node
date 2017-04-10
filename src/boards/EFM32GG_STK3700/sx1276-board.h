@@ -100,7 +100,7 @@ void SX1276AntSwDeInit( void );
  *
  * \remark see errata note
  *
- * \param [IN] rxTx [1: Tx, 0: Rx]
+ * \param [IN] opMode Current radio operating mode
  */
 void SX1276SetAntSw( uint8_t rxTx );
 
