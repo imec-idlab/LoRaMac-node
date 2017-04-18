@@ -83,8 +83,8 @@ void RtcInit( void )
 		rtcOverflowCounter = 0;
 
 		// Calculate overflow interval based on RTC counter width and frequency
-		rtcOverflowInterval   = ((0x00FFFFFF+1) / RTC_TICKS_PER_S);
-		rtcOverflowIntervalR  = ((0x00FFFFFF+1) % RTC_TICKS_PER_S); // remainder
+		rtcOverflowInterval   = ((0x00FFFFFF+1) / RTC_TICKS_PER_MS);
+		rtcOverflowIntervalR  = ((0x00FFFFFF+1) - (rtcOverflowInterval * RTC_TICKS_PER_MS)); // remainder
 
 		RtcInitalized = true;
 
@@ -199,13 +199,13 @@ TimerTime_t RtcGetTimerValue( void )
 	TimerTime_t t = 0;
 
 	// Add time based on number of counter overflows
-	t += rtcOverflowCounter * rtcOverflowInterval;
+//	t += rtcOverflowCounter * rtcOverflowInterval;
 
 	// Add remainder if the overflow interval is not an integer
-	if ( rtcOverflowIntervalR != 0 )
-	{
-		t += (rtcOverflowCounter * rtcOverflowIntervalR) / RTC_TICKS_PER_MS;
-	}
+//	if ( rtcOverflowIntervalR != 0 )
+//	{
+//		t += (rtcOverflowCounter * rtcOverflowIntervalR) / RTC_TICKS_PER_MS;
+//	}
 
 	// Add the number of milliseconds for RTC
 	t += ( RTC->CNT / RTC_TICKS_PER_MS );
@@ -221,7 +221,7 @@ TimerTime_t RtcGetElapsedAlarmTime( void )
     TimerTime_t currentTime = RtcGetTimerValue();
     if( currentTime < previousTime )
     {
-        return( currentTime + ( 0xFFFFFFFF - previousTime ) );
+        return( currentTime + ( rtcOverflowInterval - previousTime ) );
     }
     else
     {
@@ -245,10 +245,9 @@ TimerTime_t RtcComputeElapsedTime( TimerTime_t eventInTime )
     }
 
     elapsedTime = RtcGetTimerValue();
-
     if( elapsedTime < eventInTime )
     { // roll over of the counter
-        return( elapsedTime + ( 0xFFFFFFFF - eventInTime ) );
+        return( elapsedTime + ( rtcOverflowInterval - eventInTime ) );
     }
     else
     {
